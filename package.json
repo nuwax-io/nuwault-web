@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-io/nuwault-web",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Advanced keyword-based password generator with client-side security, privacy focus and PWA support",
   "type": "module",
   "private": false,
