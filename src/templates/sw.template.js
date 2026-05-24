@@ -637,13 +637,8 @@ self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
       event.respondWith(
         fetch(event.request, { cache: 'no-cache' })
-          .then(response => {
-            if (response.ok) {
-              return response;
-            }
-            throw new Error('Dev server not responding');
-          })
           .catch(() => {
+            // Only serve offline page on actual network failure (dev server not running)
             return new Response(DEV_OFFLINE_PAGE, {
               headers: { 'Content-Type': 'text/html' },
               status: 503
