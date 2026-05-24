@@ -21,8 +21,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    target: 'es2015',
-    minify: 'terser', // Use terser for better minification control
+    minify: 'terser',
     terserOptions: {
       compress: {
         // Remove console logs in production
@@ -33,10 +32,8 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        inlineDynamicImports: true,
         manualChunks: undefined
       }
-      // Service worker will be copied via copyPublicDir
     },
     cssCodeSplit: false, // Keep all CSS in one file
     // Copy PWA files to dist (includes sw.js, manifest.json, icons, etc.)
