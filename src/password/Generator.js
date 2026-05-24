@@ -486,32 +486,23 @@ export class PasswordGenerator {
     const addKeywordBtn = this.element.querySelector('#add-keyword-btn');
     
     keywordInput.addEventListener('input', (e) => {
-      this.keywordInput = e.target.value;
-      this.updateAddButtonState();
-      this.updateInputVisualFeedback(e.target);
-    });
-
-    keywordInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this.addKeyword();
-      }
-    });
-
-    keywordInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.keyCode === 13) {
-        e.preventDefault();
-        this.addKeyword();
-      }
-    });
-
-    keywordInput.addEventListener('input', (e) => {
       if (e.target.value.includes('\n')) {
         e.target.value = e.target.value.replace(/\n/g, '');
         this.keywordInput = e.target.value.trim();
         if (this.keywordInput) {
           this.addKeyword();
         }
+        return;
+      }
+      this.keywordInput = e.target.value;
+      this.updateAddButtonState();
+      this.updateInputVisualFeedback(e.target);
+    });
+
+    keywordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault();
+        this.addKeyword();
       }
     });
 
@@ -712,8 +703,14 @@ export class PasswordGenerator {
   /**
    * Core password generation function with validation and error handling
    */
-  async performPasswordGeneration() {
+  async performPasswordGeneration(retryCount = 0) {
     if (this.isAnimating) {
+      return;
+    }
+
+    if (retryCount >= 3) {
+      logger.warn('[PasswordGenerator] Max retries reached, giving up');
+      this.setPassword('');
       return;
     }
     
@@ -763,7 +760,7 @@ export class PasswordGenerator {
             // Retry generation if password doesn't meet requirements
             logger.warn('[PasswordGenerator] Generated password does not meet requirements, retrying...');
             setTimeout(() => {
-              this.performPasswordGeneration();
+              this.performPasswordGeneration(retryCount + 1);
             }, 100);
           }
         } else {
