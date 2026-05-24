@@ -10,6 +10,12 @@
 import { toast } from '../utils/toast.js';
 import { t } from '../utils/i18n.js';
 
+const escapeHtml = (str) => str
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
 /**
  * KeywordChips Class
  * 
@@ -82,9 +88,10 @@ export class KeywordChips {
     }
 
     return this.keywords.map((keyword, index) => {
-      const displayText = this.maskKeywords ? '*'.repeat(keyword.length) : keyword;
+      const safeKeyword = escapeHtml(keyword);
+      const displayText = this.maskKeywords ? '*'.repeat(keyword.length) : safeKeyword;
       const isEditing = this.editingIndex === index;
-      
+
       if (isEditing) {
         return `
           <div class="keyword-chip keyword-chip-editing inline-flex items-center bg-primary-50 dark:bg-gray-700/40 border border-primary-300 dark:border-gray-500/50 rounded-lg px-3 py-2 shadow-sm">
@@ -93,9 +100,9 @@ export class KeywordChips {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
               </svg>
               <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2 min-w-[14px] text-center">${index + 1}.</span>
-              <input type="text" 
-                     data-edit-index="${index}" 
-                     value="${keyword}" 
+              <input type="text"
+                     data-edit-index="${index}"
+                     value="${safeKeyword}"
                      class="bg-transparent border-none outline-none text-sm font-medium text-primary-700 dark:text-white flex-1 min-w-0"
                      autocomplete="off">
             </div>
@@ -130,7 +137,7 @@ export class KeywordChips {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
             </svg>
             <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2 min-w-[14px] text-center">${index + 1}.</span>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-100 select-none">${displayText}</span>
+            <span class="keyword-display text-sm font-medium text-gray-700 dark:text-gray-100 select-none">${displayText}</span>
           </div>
           <div class="flex items-center">
             <button type="button" 
