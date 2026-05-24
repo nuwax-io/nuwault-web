@@ -30,11 +30,7 @@ export default defineConfig({
         pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
       }
     },
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    },
+    rollupOptions: {},
     cssCodeSplit: false, // Keep all CSS in one file
     // Copy PWA files to dist (includes sw.js, manifest.json, icons, etc.)
     copyPublicDir: true
