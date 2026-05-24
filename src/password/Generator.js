@@ -552,14 +552,34 @@ export class PasswordGenerator {
       this.updatePasswordDisplay();
     });
     
-    window.addEventListener('resize', () => {
+    this._resizeHandler = () => {
       this.updateValidationState();
-      
       const passwordOutput = this.element.querySelector('#password-output');
       if (passwordOutput && passwordOutput.value) {
         this.autoResizeTextarea(passwordOutput);
       }
-    });
+    };
+    window.addEventListener('resize', this._resizeHandler);
+  }
+
+  destroy() {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
+    if (this.autoGenerateTimeout) {
+      clearTimeout(this.autoGenerateTimeout);
+      this.autoGenerateTimeout = null;
+    }
+    if (this.lengthSliderTimeout) {
+      clearTimeout(this.lengthSliderTimeout);
+      this.lengthSliderTimeout = null;
+    }
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    this.isAnimating = false;
   }
 
   /**
