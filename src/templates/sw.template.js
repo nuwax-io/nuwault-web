@@ -105,6 +105,7 @@ const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/redirect.js',
   
   // Icons - all sizes for PWA compatibility (verified to exist)
   '/assets/img/icons/nuwault_icon_16x16.png',
