@@ -5,7 +5,7 @@
  * @author NuwaX
  */
 
-import { PWA_CONFIG } from './config.js';
+import { PWA_CONFIG, APP_CONFIG } from './config.js';
 import { logger } from './logger.js';
 
 /**
@@ -40,7 +40,7 @@ export class PWAManager {
       
       logger.log('[PWA] PWA Manager initialized successfully');
     } catch (error) {
-      console.error('[PWA] Failed to initialize PWA Manager:', error);
+      logger.error('[PWA] Failed to initialize PWA Manager:', error);
     }
   }
 
@@ -91,7 +91,7 @@ export class PWAManager {
       });
 
     } catch (error) {
-      console.error('[PWA] Service Worker registration failed:', error);
+      logger.error('[PWA] Service Worker registration failed:', error);
     }
   }
 
@@ -114,7 +114,7 @@ export class PWAManager {
   setupLocalCache() {
     const cacheKey = `${PWA_CONFIG.name}_cache`;
     const cacheData = {
-      version: PWA_CONFIG.version,
+      version: APP_CONFIG.version,
       timestamp: Date.now(),
       theme: localStorage.getItem('theme') || 'dark',
       lastUsed: Date.now()
@@ -194,7 +194,7 @@ export class PWAManager {
       
       return false;
     } catch (error) {
-      console.error('[PWA] Install prompt failed:', error);
+      logger.error('[PWA] Install prompt failed:', error);
       return false;
     }
   }
@@ -549,7 +549,7 @@ export class PWAManager {
       
       return true;
     } catch (error) {
-      console.error('[PWA] Failed to unregister Service Worker:', error);
+      logger.error('[PWA] Failed to unregister Service Worker:', error);
       return false;
     }
   }
