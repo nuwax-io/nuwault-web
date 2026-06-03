@@ -429,9 +429,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
     return;
   }
-  
-  self.skipWaiting();
-  
+
   event.waitUntil(
     (async () => {
       try {
@@ -530,13 +528,10 @@ self.addEventListener('install', (event) => {
         }
         
         await CacheManager.cleanupOldCaches();
-        
-        await self.skipWaiting();
         logger.log(`Service worker v{{APP_VERSION}} installed successfully`);
-        
+
       } catch (error) {
         logger.error('Error during service worker installation:', error);
-        self.skipWaiting();
       }
     })()
   );
