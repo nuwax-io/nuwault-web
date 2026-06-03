@@ -18,7 +18,8 @@ export class PWAManager {
     this.deferredPrompt = null;
     this.isInstalled = false;
     this.serviceWorkerRegistration = null;
-    
+    this._pendingReload = false;
+
     this.init();
   }
 
@@ -71,7 +72,7 @@ export class PWAManager {
       this.serviceWorkerRegistration.addEventListener('updatefound', () => {
         logger.log('[PWA] Service Worker update found');
         const newWorker = this.serviceWorkerRegistration.installing;
-        
+
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -81,7 +82,14 @@ export class PWAManager {
           });
         }
       });
-      
+
+      // Reload after new SW takes control (triggered by user clicking Reload in notification)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (this._pendingReload) {
+          window.location.reload();
+        }
+      });
+
     } catch (error) {
       console.error('[PWA] Service Worker registration failed:', error);
     }
@@ -192,100 +200,74 @@ export class PWAManager {
   }
 
   /**
-   * Show update available notification with enhanced information
+   * Show update available notification
    */
   showUpdateAvailable() {
     logger.log('[PWA] Showing update notification');
-    
-    this.getCacheStatus().then(status => {
-      logger.log('[PWA] Cache status when update available:', status);
-    });
-    
-    const existingNotification = document.querySelector('.pwa-update-notification');
-    if (existingNotification) {
-      existingNotification.remove();
+
+    const existing = document.querySelector('.pwa-update-notification');
+    if (existing) existing.remove();
+
+    if (!document.querySelector('#pwa-notification-keyframes')) {
+      const style = document.createElement('style');
+      style.id = 'pwa-notification-keyframes';
+      style.textContent = '@keyframes pwaSlideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}';
+      document.head.appendChild(style);
     }
-    
-    import('./config.js').then(({ APP_CONFIG }) => {
-      const notification = document.createElement('div');
-      notification.className = 'pwa-update-notification fixed bottom-4 right-4 bg-primary-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm';
-      notification.innerHTML = `
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="font-semibold">Update Available</p>
-            <p class="text-sm opacity-90">New version ${APP_CONFIG.version} ready to install</p>
-            <p class="text-xs opacity-75 mt-1">Cache will be refreshed</p>
-          </div>
-          <div class="flex flex-col ml-3 space-y-1">
-            <button id="reload-btn" class="bg-white text-primary-500 px-3 py-1 rounded font-semibold text-sm">
-              Install
-            </button>
-            <button id="dismiss-btn" class="bg-transparent border border-white text-white px-3 py-1 rounded text-xs">
-              Close
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      document.getElementById('reload-btn')?.addEventListener('click', async () => {
-        logger.log('[PWA] User clicked reload - clearing cache and reloading');
-        
-        notification.innerHTML = `
-          <div class="text-center">
-            <p class="font-semibold">Installing Update...</p>
-            <p class="text-sm opacity-90">Please wait</p>
-          </div>
-        `;
-        
-        try {
-          const clearCachePromise = this.clearCache();
-          const timeoutPromise = new Promise((resolve) => {
-            setTimeout(() => {
-              logger.warn('[PWA] Cache clear timeout - proceeding with reload');
-              resolve(false);
-            }, 3000);
-          });
-          
-          await Promise.race([clearCachePromise, timeoutPromise]);
-          
-        } catch (error) {
-          logger.error('[PWA] Cache clear failed - proceeding with reload anyway:', error);
-        }
-        
-         logger.log('[PWA] Force reloading page...');
-         
-         try {
-           if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.waiting) {
-             logger.log('[PWA] Sending skipWaiting to new service worker');
-             this.serviceWorkerRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
-           }
-           
-           if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
-             logger.log('[PWA] Sending skipWaiting to active service worker');
-             this.serviceWorkerRegistration.active.postMessage({ type: 'SKIP_WAITING' });
-           }
-         } catch (skipError) {
-           logger.warn('[PWA] Skip waiting failed:', skipError);
-         }
-         
-         setTimeout(() => {
-           try {
-             logger.log('[PWA] Attempting hard reload with cache bypass');
-             window.location.reload();
-           } catch (reloadError) {
-             logger.warn('[PWA] Standard reload failed, trying navigation reload');
-             window.location.href = window.location.href + '?cache_bust=' + Date.now();
-           }
-         }, 100);
-      });
-      
-      document.getElementById('dismiss-btn')?.addEventListener('click', () => {
-        logger.log('[PWA] User dismissed update notification');
-        notification.remove();
-      });
+
+    const notification = document.createElement('div');
+    notification.className = 'pwa-update-notification';
+    notification.style.cssText = [
+      'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
+      'background:#1e293b', 'border:1px solid #334155', 'border-left:4px solid #2ebba8',
+      'color:#f1f5f9', 'padding:1rem 1.25rem', 'border-radius:0.75rem',
+      'box-shadow:0 20px 40px rgba(0,0,0,0.5)', 'z-index:9999',
+      'max-width:320px', 'width:calc(100vw - 3rem)',
+      'display:flex', 'align-items:center', 'gap:0.75rem',
+      'font-family:system-ui,-apple-system,sans-serif',
+      'animation:pwaSlideIn 0.3s ease-out',
+    ].join(';');
+
+    notification.innerHTML = `
+      <span style="font-size:1.25rem;flex-shrink:0">🔄</span>
+      <div style="flex:1;min-width:0">
+        <p style="margin:0;font-weight:600;font-size:0.875rem;line-height:1.25">Update Available</p>
+        <p style="margin:0.25rem 0 0;font-size:0.75rem;opacity:0.65;line-height:1.4">A new version is ready. Reload to apply.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.375rem;flex-shrink:0">
+        <button id="pwa-reload-btn" style="background:#2ebba8;border:none;color:white;padding:0.375rem 0.75rem;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;white-space:nowrap">
+          Reload
+        </button>
+        <button id="pwa-dismiss-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:0.25rem 0.5rem;border-radius:0.375rem;font-size:0.75rem;cursor:pointer">
+          Later
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    document.getElementById('pwa-reload-btn')?.addEventListener('click', () => {
+      logger.log('[PWA] User requested update reload');
+      notification.style.opacity = '0.6';
+      notification.style.pointerEvents = 'none';
+
+      const waiting = this.serviceWorkerRegistration?.waiting;
+      if (waiting) {
+        this._pendingReload = true;
+        waiting.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        window.location.reload();
+      }
     });
+
+    document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => {
+      logger.log('[PWA] User dismissed update notification');
+      notification.remove();
+    });
+
+    setTimeout(() => {
+      if (notification.parentNode) notification.remove();
+    }, 60000);
   }
 
   /**
