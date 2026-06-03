@@ -61,8 +61,7 @@ export class ManifestManager {
    */
   addPWAMetaTags() {
     this.addMetaTag('theme-color', PWA_CONFIG.themeColor);
-    this.addMetaTag('background-color', '#1f2937');
-    this.addMetaTag('mobile-web-app-capable', 'yes');
+    this.addMetaTag('apple-mobile-web-app-capable', 'yes');
     this.addMetaTag('apple-mobile-web-app-status-bar-style', 'black-translucent');
     this.addMetaTag('apple-mobile-web-app-title', PWA_CONFIG.shortName);
     this.addMetaTag('msapplication-TileColor', PWA_CONFIG.themeColor);
@@ -78,7 +77,6 @@ export class ManifestManager {
   removePWAMetaTags() {
     const pwaMetaTags = [
       'meta[name="theme-color"]',
-      'meta[name="background-color"]', 
       'meta[name="apple-mobile-web-app-capable"]',
       'meta[name="apple-mobile-web-app-status-bar-style"]',
       'meta[name="apple-mobile-web-app-title"]',
