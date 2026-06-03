@@ -8,6 +8,7 @@
 import i18next from 'i18next';
 import enTranslations from '../locales/en/translations.json';
 import trTranslations from '../locales/tr/translations.json';
+import { logger } from './logger.js';
 
 /**
  * Supported languages configuration with metadata
@@ -117,7 +118,7 @@ export const initI18n = async () => {
  */
 export const changeLanguage = async (language) => {
   if (!SUPPORTED_LANGUAGES[language]) {
-    console.warn(`[i18n] Unsupported language: ${language}`);
+    logger.warn(`[i18n] Unsupported language: ${language}`);
     return false;
   }
 
@@ -133,7 +134,7 @@ export const changeLanguage = async (language) => {
     
     return true;
   } catch (error) {
-    console.error('[i18n] Error changing language:', error);
+    logger.error('[i18n] Error changing language:', error);
     return false;
   }
 };
