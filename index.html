@@ -13,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'none';
-      script-src 'self' 'unsafe-inline';
+      script-src 'self';
       style-src 'self' 'unsafe-inline';
       img-src 'self' data:;
       font-src 'self';
@@ -21,7 +21,7 @@
       manifest-src 'self';
       worker-src 'self';
       base-uri 'self';
-      form-action 'self';
+      form-action 'none';
     " />
 
     <meta name="description" content="%VITE_APP_DESCRIPTION%" />
@@ -40,42 +40,8 @@
 
     <link rel="canonical" href="%VITE_APP_URL%/" />
     
-    <!-- SEO: Prevent duplicate content by redirecting invalid URLs -->
-    <script>
-      // Early redirect before any other scripts load
-      (function() {
-        // Skip redirect for file:// protocol (local file opening)
-        if (window.location.protocol === 'file:') {
-          return;
-        }
-        
-        // Only redirect on official production domain
-        const hostname = window.location.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.');
-        const isOfficialProduction = hostname === 'nuwault.com';
-        
-        if (isLocalhost || !isOfficialProduction) {
-          return;
-        }
-        
-        const currentPath = window.location.pathname;
-        const currentHash = window.location.hash;
-        
-        // Check if we're on an invalid path (not root and not special files)
-        if (currentPath !== '/' && currentPath !== '/index.html' && 
-            currentPath !== '/robots.txt' && currentPath !== '/sitemap.xml') {
-          
-          // Get canonical URL from meta tag
-          const canonicalLink = document.querySelector('link[rel="canonical"]');
-          const canonicalUrl = canonicalLink ? canonicalLink.href : window.location.origin;
-          
-          // Redirect to canonical URL, preserving hash if present
-          const redirectUrl = currentHash ? canonicalUrl + currentHash : canonicalUrl;
-          window.location.replace(redirectUrl);
-        }
-      })();
-    </script>
-        
+    <script src="/redirect.js"></script>
+
     <title>%VITE_APP_NAME% - %VITE_APP_TITLE%</title>
   </head>
   <body>
