@@ -46,7 +46,6 @@
         "title": "Oluşturulan Şifre",
         "placeholder": {
           "default": "Şifre oluşturmak için anahtar kelime girin",
-          "empty": "Şifre oluşturmak için anahtar kelime ekleyin",
           "emptyKeywords": "Anahtar kelimeleriniz boş görünüyor",
           "shortKeywords": "Her anahtar kelime en az 3 karakter olmalıdır",
           "ready": "Şifreniz hazır",

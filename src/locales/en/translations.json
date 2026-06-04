@@ -46,7 +46,6 @@
         "title": "Generated Password",
         "placeholder": {
           "default": "Enter keywords to generate a secure password",
-          "empty": "Add keywords to generate password",
           "emptyKeywords": "Your keywords seem to be empty",
           "shortKeywords": "Each keyword needs at least 3 characters",
           "ready": "Your secure password is ready",
