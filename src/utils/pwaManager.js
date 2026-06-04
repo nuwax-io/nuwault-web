@@ -208,10 +208,24 @@ export class PWAManager {
     const existing = document.querySelector('.pwa-update-notification');
     if (existing) existing.remove();
 
-    if (!document.querySelector('#pwa-notification-keyframes')) {
+    if (!document.querySelector('#pwa-notification-styles')) {
       const style = document.createElement('style');
-      style.id = 'pwa-notification-keyframes';
-      style.textContent = '@keyframes pwaSlideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}';
+      style.id = 'pwa-notification-styles';
+      style.textContent = [
+        '@keyframes pwaSlideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}',
+        '.pwa-update-notification{background:var(--bg-tertiary);border:1px solid var(--gray-200);border-left:4px solid var(--teal-500);color:var(--gray-900);box-shadow:0 10px 30px rgba(0,0,0,0.08),0 0 0 1px rgba(46,187,168,0.06);transition:background-color 0.3s,border-color 0.3s,color 0.3s}',
+        '.dark .pwa-update-notification{border-color:var(--gray-700);color:white;box-shadow:0 10px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(46,187,168,0.1)}',
+        '.pwa-update-icon{background:var(--teal-100);color:var(--teal-600);border-radius:50%;width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background-color 0.3s,color 0.3s}',
+        '.dark .pwa-update-icon{background:rgba(22,91,83,0.35);color:var(--teal-400)}',
+        '.pwa-subtitle{margin:0.25rem 0 0;font-size:0.75rem;line-height:1.4;color:var(--gray-500);transition:color 0.3s}',
+        '.dark .pwa-subtitle{color:var(--gray-400)}',
+        '.pwa-reload-btn{background:var(--teal-500);border:none;color:white;padding:0.375rem 0.75rem;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color 0.2s}',
+        '.pwa-reload-btn:hover{background:var(--teal-600)}',
+        '.pwa-dismiss-btn{background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);padding:0.25rem 0.5rem;border-radius:0.375rem;font-size:0.75rem;cursor:pointer;text-align:center;transition:background-color 0.2s,border-color 0.2s,color 0.3s}',
+        '.dark .pwa-dismiss-btn{border-color:var(--gray-600);color:var(--gray-400)}',
+        '.pwa-dismiss-btn:hover{background:var(--gray-100);border-color:var(--gray-400)}',
+        '.dark .pwa-dismiss-btn:hover{background:var(--gray-800);border-color:var(--gray-500)}',
+      ].join('');
       document.head.appendChild(style);
     }
 
@@ -219,28 +233,26 @@ export class PWAManager {
     notification.className = 'pwa-update-notification';
     notification.style.cssText = [
       'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
-      'background:#1e293b', 'border:1px solid #334155', 'border-left:4px solid #2ebba8',
-      'color:#f1f5f9', 'padding:1rem 1.25rem', 'border-radius:0.75rem',
-      'box-shadow:0 20px 40px rgba(0,0,0,0.5)', 'z-index:9999',
-      'max-width:320px', 'width:calc(100vw - 3rem)',
+      'padding:1rem 1.25rem', 'border-radius:0.75rem',
+      'z-index:9999', 'max-width:320px', 'width:calc(100vw - 3rem)',
       'display:flex', 'align-items:center', 'gap:0.75rem',
       'font-family:system-ui,-apple-system,sans-serif',
       'animation:pwaSlideIn 0.3s ease-out',
     ].join(';');
 
     notification.innerHTML = `
-      <span style="font-size:1.25rem;flex-shrink:0">🔄</span>
+      <div class="pwa-update-icon">
+        <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </div>
       <div style="flex:1;min-width:0">
         <p style="margin:0;font-weight:600;font-size:0.875rem;line-height:1.25">Update Available</p>
-        <p style="margin:0.25rem 0 0;font-size:0.75rem;opacity:0.65;line-height:1.4">A new version is ready. Reload to apply.</p>
+        <p class="pwa-subtitle">A new version is ready. Reload to apply.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:0.375rem;flex-shrink:0">
-        <button id="pwa-reload-btn" style="background:#2ebba8;border:none;color:white;padding:0.375rem 0.75rem;border-radius:0.375rem;font-size:0.8125rem;font-weight:600;cursor:pointer;white-space:nowrap">
-          Reload
-        </button>
-        <button id="pwa-dismiss-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:0.25rem 0.5rem;border-radius:0.375rem;font-size:0.75rem;cursor:pointer">
-          Later
-        </button>
+        <button id="pwa-reload-btn" class="pwa-reload-btn">Reload</button>
+        <button id="pwa-dismiss-btn" class="pwa-dismiss-btn">Later</button>
       </div>
     `;
 
