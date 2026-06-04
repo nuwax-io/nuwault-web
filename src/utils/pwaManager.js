@@ -517,13 +517,13 @@ export class PWAManager {
         for (const cacheName of cacheNames) {
           try {
             await caches.delete(cacheName);
-          } catch (deleteError) {
+          } catch {
             // Ignore individual cache delete errors
           }
         }
         logger.log('[PWA] Cache cleared with fallback method');
         return true;
-      } catch (fallbackError) {
+      } catch {
         logger.error('[PWA] All cache clear methods failed');
         return false;
       }
