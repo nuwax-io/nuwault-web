@@ -8,7 +8,7 @@ export const GeneratorEvents = {
    *
    * @param {Array} keywords - Updated array of keywords
    */
-  handleKeywordChange(keywords) {
+  handleKeywordChange(_keywords) {
     if (KEYWORD_MANAGEMENT_OPTIONS.autoGeneratePassword && this.autoGenerate) {
       if (this.autoGenerateTimeout) {
         clearTimeout(this.autoGenerateTimeout);
