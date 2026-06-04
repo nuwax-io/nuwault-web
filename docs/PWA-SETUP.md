@@ -109,7 +109,7 @@ npm run build
 - **Service Worker Registration**: Secure context validation
 - **Install Prompts**: User-friendly installation flow
 - **Cache Management**: Comprehensive cache control
-- **Update Notifications**: Seamless update experience
+- **Update Notifications**: "Update Available" banner shown when new SW reaches `installed` state; `SKIP_WAITING` sent only to `registration.waiting` on user confirmation; `controllerchange` listener reloads the page
 
 #### Service Worker Generator (`generate-sw.js`)
 - **Template Processing**: Environment variable injection
@@ -145,9 +145,10 @@ npm run build
 - **Standalone Mode**: Native app-like window experience
 
 ### Update System
-- **Background Detection**: Automatic new version detection
-- **User Control**: Update notifications with install/dismiss options
-- **Cache Refresh**: Automatic cache invalidation for seamless updates
+- **Background Detection**: Automatic new version detection via `updatefound` / `statechange` events
+- **User Control**: "Update Available" banner with **Reload** / Later buttons — page only reloads on explicit user action
+- **Safe Waiting**: New service worker stays in `waiting` state until the user confirms; `controllerchange` listener triggers the reload
+- **Cache Refresh**: Old caches are cleaned up automatically during the new service worker's `activate` phase
 
 ## Troubleshooting
 
@@ -245,29 +246,32 @@ window.pwaManager?.resetPWA();
 ## Technical Requirements
 
 ### PWA Checklist
-- Web App Manifest (manifest.json)
+- Web App Manifest (manifest.json) — includes `id`, `description`, `display_override`
 - Service Worker (sw.js)
 - HTTPS protocol (production)
 - Browser Cache API support (for offline functionality)
 - Responsive design
-- PWA icons (16x16 to 512x512)
+- PWA icons (16×16 to 512×512, separate `"any"` and `"maskable"` entries)
 - Valid start URL
+- External redirect script (`redirect.js`) served from origin root
 
 ### File Structure
 ```
 public/
-├── manifest.json
-├── sw.js
+├── manifest.json            # PWA manifest (id, description, display_override)
+├── sw.js                    # Generated service worker (from sw.template.js)
+├── redirect.js              # Early URL redirect script (no inline scripts in HTML)
 └── assets/
     └── img/
-        ├── icons/           # PWA icons
+        ├── icons/           # PWA icons (any + maskable)
         └── favicon/         # Favicon files
 
 src/
 ├── templates/
-│   └── sw.template.js       # Service worker template
+│   └── sw.template.js       # Service worker template (env vars injected at build)
 └── utils/
-    └── pwaManager.js        # PWA functionality
+    ├── pwaManager.js        # SW registration, update notifications, cache control
+    └── manifestManager.js   # Dynamic manifest link and meta tag injection
 ```
 
 ## Configuration Files
