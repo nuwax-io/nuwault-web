@@ -145,7 +145,7 @@ export class PasswordGenerator {
 
     const keywordContainer = this.element.querySelector('#keywords-container');
 
-    let success = false;
+    let success;
     if (trimmedInput.includes(',')) {
       success = this.keywordChips.addMultipleKeywords(trimmedInput, keywordContainer);
     } else {
