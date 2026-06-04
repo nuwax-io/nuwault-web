@@ -169,12 +169,14 @@ class HeaderController {
     // Initialize logo based on current theme
     updateLogo();
 
-    // Watch for theme changes using MutationObserver
-    const observer = new MutationObserver(() => {
+    // Watch for theme changes — disconnect previous observer before re-attaching
+    if (this._logoObserver) {
+      this._logoObserver.disconnect();
+    }
+    this._logoObserver = new MutationObserver(() => {
       updateLogo();
     });
-
-    observer.observe(document.documentElement, {
+    this._logoObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
