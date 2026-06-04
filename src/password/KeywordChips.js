@@ -337,7 +337,7 @@ export class KeywordChips {
     let shortCount = 0;
     
     keywords.forEach(keyword => {
-      if (keyword.length < 1) {
+      if (keyword.length < 3) {
         shortCount++;
       } else if (this.keywords.includes(keyword)) {
         duplicateCount++;
@@ -372,7 +372,7 @@ export class KeywordChips {
    * @returns {boolean} True if keyword was added
    */
   addSingleKeyword(keyword, container) {
-    if (keyword.length >= 1) {
+    if (keyword.length >= 3) {
       if (!this.keywords.includes(keyword)) {
         this.keywords.push(keyword);
         this.updateKeywordChips(container);
@@ -409,7 +409,7 @@ export class KeywordChips {
     const editInput = container.querySelector(`[data-edit-index="${index}"]`);
     if (editInput) {
       const newValue = editInput.value.trim();
-      if (newValue && newValue.length >= 1) {
+      if (newValue && newValue.length >= 3) {
         const isDuplicate = this.keywords.some((keyword, i) => i !== index && keyword === newValue);
         if (!isDuplicate) {
           this.keywords[index] = newValue;
