@@ -31,6 +31,8 @@ Nuwault is a secure, privacy-focused password generator that creates determinist
 ### Core Functionality
 - **Keyword-Based Generation**: Use memorable keywords to create secure passwords
 - **Real-time Strength Analysis**: Advanced password strength meter with detailed feedback
+- **Granular Symbol Types**: 7 independently toggleable symbol categories — Logograms, Math, Braces, Dashes & Slashes, Punctuation, Quotes, Extended ASCII (46 chars)
+- **Exclude Look-alike Characters**: Option to remove visually ambiguous characters (`0 1 l I O | . B 9 G 6`) from all active sets
 - **Customizable Options**: Configure length, character types, and complexity
 - **Multi-language Support**: Available in multiple languages
 
@@ -77,6 +79,26 @@ npm run pwa:setup        # Setup PWA features
 ```
 
 **Note**: After first build, the app works offline if browser cache is enabled. Private/incognito mode may prevent offline functionality.
+
+## Symbol Type Configuration
+
+The password generator exposes fine-grained control over symbol characters via 7 independent categories:
+
+| Category | Characters | Default |
+|---|---|---|
+| Logograms | `#$%&@^` `` ` `` `~` | ✅ On |
+| Math | `<>*+!?=` | ✅ On |
+| Braces | `{[()]}` | ✅ On |
+| Dashes & Slashes | `\/\|_-` | ✅ On |
+| Punctuation | `.,:;` | ✅ On |
+| Quotes | `"'` | ❌ Off |
+| Extended ASCII | `½©²±æçüÁ…` (46 chars) | ❌ Off |
+
+**Backward compatibility**: when the default selection is active, the generator passes the original `!@#$%^&*()_+-=[]{}|;:,.<>?` symbol string to `nuwault-core` unchanged — previously generated passwords are unaffected. Custom selections produce a new combined charset.
+
+**Exclude look-alike characters** (`0 1 l I O | . B 9 G 6`) is an opt-in option that filters ambiguous characters from all active sets (uppercase, lowercase, numbers, and symbols).
+
+> All character set logic lives in `src/utils/config.js` (`SYMBOL_GROUPS`, `buildSymbolsCharset`, `buildCharacterSets`). The core package receives the final charset via the `characterSets` parameter of `generatePassword()`.
 
 ## Password Generation Algorithm
 
@@ -131,11 +153,11 @@ The library includes comprehensive validation systems to ensure algorithm consis
 
 - **Frontend**: Vanilla JavaScript (ES6+), no frameworks
 - **Algorithm**: [@nuwax-io/nuwault-core](https://github.com/nuwax-io/nuwault-core) for secure password generation
-- **Styling**: Tailwind CSS 4.1.11 with utility-first approach
-- **Build Tool**: Vite 7.0.0 for fast development and building
-- **PWA**: Service Worker, Web App Manifest
-- **Security**: Web Crypto API for cryptographic operations
-- **Internationalization**: i18next for multi-language support
+- **Styling**: Tailwind CSS 4 with utility-first approach
+- **Build Tool**: Vite 8 — separate JS + CSS bundles for efficient service worker caching
+- **PWA**: Service Worker, Web App Manifest (`id`, `display_override`, maskable icons)
+- **Security**: Web Crypto API, strict CSP (`script-src 'self'`, no `unsafe-inline`)
+- **Internationalization**: i18next for multi-language support (English, Turkish)
 
 ## Project Structure
 
