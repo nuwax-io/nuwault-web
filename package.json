@@ -25,7 +25,13 @@
     "pwa:setup": "npm run pwa:install-deps && npm run generate-icons && npm run generate-sw",
     "clean": "rm -rf dist",
     "validate": "npm run build",
-    "prepublishOnly": "npm run clean && npm run validate"
+    "prepublishOnly": "npm run clean && npm run validate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "check": "npm run lint && npm run test && npm run build"
   },
   "keywords": [
     "password",
@@ -62,10 +68,15 @@
   },
   "homepage": "https://nuwault.com",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^10.4.1",
+    "globals": "^17.6.0",
     "sharp": "^0.34.2",
     "terser": "^5.43.1",
     "vite": "^8.0.14",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@nuwax-io/nuwault-core": "^1.0.1",
