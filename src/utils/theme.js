@@ -91,7 +91,7 @@ export const initializeTheme = () => {
   const storedTheme = getStoredTheme();
   applyTheme(storedTheme);
   
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const currentTheme = getStoredTheme();
     if (currentTheme === THEMES.SYSTEM) {
       applyTheme(THEMES.SYSTEM);
