@@ -545,56 +545,6 @@ export class PasswordGenerator {
     });
   }
 
-  /**
-   * Enhanced mobile debugging utility with throttling for touch events
-   *
-   * @param {Event} event - The touch event
-   * @param {string} action - The action being performed
-   */
-  debugTouchEvents(event, action) {
-    if (typeof window === 'undefined' || !window.location) return;
-
-    const isDevelopment = window.location.hostname === 'localhost' ||
-                          window.location.hostname === '127.0.0.1';
-    const debugEnabled = localStorage.getItem('nuwault-debug-touch') === 'true';
-
-    if (!isDevelopment && !debugEnabled) return;
-
-    if (this.debugLogThrottle) return;
-
-    const currentState = {
-      action,
-      touchCount: event.touches ? event.touches.length : 0,
-      isDragging: this.isTouchDragging,
-      touchMoved: this.touchMoved,
-      preventClick: this.touchPreventClick
-    };
-
-    const shouldLog = action === 'touchstart' ||
-                      action === 'touchend' ||
-                      action === 'touchcancel' ||
-                      !this.lastDebugState ||
-                      this.lastDebugState.isDragging !== currentState.isDragging ||
-                      this.lastDebugState.action !== currentState.action;
-
-    if (!shouldLog) return;
-
-    if ((action === 'touchstart' || action === 'touchend') && event.touches && event.touches[0]) {
-      currentState.x = Math.round(event.touches[0].clientX);
-      currentState.y = Math.round(event.touches[0].clientY);
-    } else if (action === 'touchend' && event.changedTouches && event.changedTouches[0]) {
-      currentState.x = Math.round(event.changedTouches[0].clientX);
-      currentState.y = Math.round(event.changedTouches[0].clientY);
-    }
-
-    console.log('[Touch Debug]', currentState);
-    this.lastDebugState = { ...currentState };
-
-    this.debugLogThrottle = true;
-    setTimeout(() => {
-      this.debugLogThrottle = false;
-    }, 100);
-  }
 }
 
 Object.assign(PasswordGenerator.prototype, GeneratorTemplate, GeneratorAnimation, GeneratorEvents);
