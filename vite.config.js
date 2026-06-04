@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
+import { readFileSync } from 'fs'
+
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+  },
   plugins: [
     tailwindcss(),
   ],
