@@ -29,3 +29,6 @@ dist-ssr
 # Build generated files
 public/sw.js
 
+# Test coverage
+coverage
+
