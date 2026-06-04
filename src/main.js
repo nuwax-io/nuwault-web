@@ -15,9 +15,6 @@ import { logger } from './utils/logger.js'
 import { initI18n } from './utils/i18n.js'
 import { setupSmoothScrollManager } from './utils/smoothScroll.js'
 
-// Core library imports
-import { analyzeCharacterDistribution } from '@nuwax-io/nuwault-core'
-
 // Application components
 import { Header } from './components/Header.js'
 import { Hero } from './components/Hero.js'
@@ -28,79 +25,10 @@ import { Footer } from './components/Footer.js'
 import { ScrollToTop } from './components/ScrollToTop.js'
 
 /**
- * Check and redirect invalid URLs to canonical URL
- * Prevents duplicate content issues for SEO
- */
-const checkAndRedirectURL = () => {
-  // Skip redirect for file:// protocol (local file opening)
-  if (window.location.protocol === 'file:') {
-    logger.log('[APP] Running in file:// protocol, skipping URL redirect')
-    return false
-  }
-  
-  // Only redirect on official production domain
-  const hostname = window.location.hostname
-  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')
-  const isOfficialProduction = hostname === 'nuwault.com'
-  
-  if (isLocalhost) {
-    logger.log('[APP] Running on localhost, skipping URL redirect')
-    return false
-  }
-  
-  if (!isOfficialProduction) {
-    logger.log('[APP] Not on official production domain:', hostname, '- skipping URL redirect')
-    return false
-  }
-  
-  const currentPath = window.location.pathname
-  const currentHash = window.location.hash
-  
-  // Get canonical URL from env or use current origin
-  const canonicalUrl = import.meta.env.VITE_APP_URL || window.location.origin
-  const canonicalOrigin = new URL(canonicalUrl).origin
-  
-  // Check if we're on the root path
-  const isRootPath = currentPath === '/' || currentPath === '/index.html'
-  
-  // If not on root path and not a special file, redirect to canonical URL
-  if (!isRootPath) {
-    // Allow robots.txt and sitemap.xml to be accessed directly
-    if (currentPath === '/robots.txt' || currentPath === '/sitemap.xml') {
-      return false
-    }
-    
-    logger.warn('[APP] Invalid URL detected, redirecting to canonical URL:', currentPath)
-    
-    // Preserve hash for anchor links
-    const redirectUrl = currentHash ? `${canonicalOrigin}${currentHash}` : canonicalOrigin
-    
-    // Use replace to avoid adding to browser history
-    window.location.replace(redirectUrl)
-    return true
-  }
-  
-  // Update canonical link in head to ensure it's always correct
-  const canonicalLink = document.querySelector('link[rel="canonical"]')
-  if (canonicalLink) {
-    canonicalLink.href = canonicalUrl
-  }
-  
-  return false
-}
-
-/**
  * Application Initialization
  * Bootstraps the entire application with proper error handling
  */
 const initApp = async () => {
-  // Check URL and redirect if necessary
-  const isRedirecting = checkAndRedirectURL()
-  if (isRedirecting) {
-    logger.log('[APP] Redirecting to canonical URL, halting initialization')
-    return
-  }
-  
   logEnvironmentInfo()
   
   // Initialize internationalization system
@@ -208,11 +136,11 @@ const initApp = async () => {
     logger.log('[APP] 🔧 PWA Debug Tools Available! Type pwaDebug.help() for commands');
     
     // Development testing features
-    setTimeout(() => {
+    setTimeout(async () => {
       if (FEATURE_FLAGS.enablePasswordTests) {
+        const { analyzeCharacterDistribution } = await import('@nuwax-io/nuwault-core');
         logger.info('[APP] 🚀 Testing improved character distribution...');
-        const testPassword = "TestPassword123!";
-        const analysis = analyzeCharacterDistribution(testPassword);
+        const analysis = analyzeCharacterDistribution("TestPassword123!");
         logger.info('[APP] 🔍 Character distribution analysis:', analysis);
       } else {
         logger.info('[APP] 💡 Set VITE_ENABLE_PASSWORD_TESTS=true in .env.development to run character distribution tests');
