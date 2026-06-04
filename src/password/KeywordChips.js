@@ -564,7 +564,7 @@ export class KeywordChips {
    * @param {Element} item - Individual keyword chip element
    */
   attachDragEvents(item) {
-    const dragHandle = item.querySelector('.drag-handle');
+    const _dragHandle = item.querySelector('.drag-handle');
     
     const newItem = item.cloneNode(true);
     item.parentNode.replaceChild(newItem, item);
@@ -941,8 +941,8 @@ export class KeywordChips {
     }
     
     if (!this.isTouchDragging && totalDelta > this.touchThreshold) {
-      let shouldStartDrag = false;
-      
+      let shouldStartDrag;
+
       if (isMobile) {
         const isVerticalDrag = deltaY > deltaX * 1.2;
         shouldStartDrag = isVerticalDrag || totalDelta > this.touchThreshold * 2;
@@ -1057,7 +1057,7 @@ export class KeywordChips {
    * 
    * @param {Event} e - Touch event
    */
-  startTouchDrag(e) {
+  startTouchDrag(_e) {
     if (!this.touchDraggedElement) return;
     
     this.draggedIndex = this.touchDraggedIndex;
@@ -1411,7 +1411,7 @@ export class KeywordChips {
    * 
    * @param {Event} e - Drag event
    */
-  checkAutoScroll(e) {
+  checkAutoScroll(_e) {
     // Disabled to prevent unwanted scrolling
     this.stopAutoScroll();
     return;
