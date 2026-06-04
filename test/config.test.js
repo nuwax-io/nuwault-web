@@ -5,7 +5,7 @@ import {
   CHARACTER_SETS,
   SYMBOL_GROUPS,
   LOOK_ALIKE_CHARS,
-} from './config.js';
+} from '../src/utils/config.js';
 
 const defaultCategories = {
   logograms: true,
