@@ -83,10 +83,17 @@ jobs:
 
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
 
-      # ── Install & version bump ────────────────────────────────────────
+      # ── Install, lint & test ─────────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      # ── Version bump ──────────────────────────────────────────────────
       - name: Bump package.json version
         run: |
           VERSION="${{ steps.version.outputs.next }}"
