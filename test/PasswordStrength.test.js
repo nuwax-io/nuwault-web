@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 // t() returns the key so tests stay language-agnostic
-vi.mock('../utils/i18n.js', () => ({
+vi.mock('../src/utils/i18n.js', () => ({
   t: (key) => key,
   default: {},
 }));
 
-import { PasswordStrength } from './PasswordStrength.js';
+import { PasswordStrength } from '../src/password/PasswordStrength.js';
 
 describe('PasswordStrength', () => {
   let ps;
