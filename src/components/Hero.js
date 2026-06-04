@@ -115,9 +115,12 @@ class HeroController {
    * Initializes and renders the password generator in the designated container
    */
   setupPasswordGenerator() {
+    if (this.passwordGenerator) {
+      this.passwordGenerator.destroy();
+    }
     const passwordGeneratorContainer = this.element.querySelector('#password-generator-container');
-    const passwordGenerator = new PasswordGenerator();
-    passwordGeneratorContainer.appendChild(passwordGenerator.render());
+    this.passwordGenerator = new PasswordGenerator();
+    passwordGeneratorContainer.appendChild(this.passwordGenerator.render());
   }
 
   /**
