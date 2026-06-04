@@ -117,7 +117,7 @@
         "description": "Aynı anahtar kelimeler her zaman aynı şifreyi üretir. Rastgele olmadığı için şifrelerinizi istediğiniz zaman yeniden oluşturabilirsiniz."
       },
       "sha512": {
-        "title": "SHA-512 Şifreleme",
+        "title": "SHA-512 Hash Algoritması",
         "description": "Askeri seviyede SHA-512 hash algoritması, şifrelerinizin kriptografik olarak güvenli olmasını sağlar."
       },
       "customizable": {
@@ -272,7 +272,7 @@
       },
       "security": {
         "title": "SHA-512 Güvenliği",
-        "description": "Şifreleriniz için askeri düzey şifreleme"
+        "description": "Şifreleriniz için askeri düzey kriptografik hash"
       }
     }
   },
@@ -424,7 +424,7 @@
             "Her hesap için benzersiz anahtar kelimeler kullanın",
             "Anahtar kelimelere hesap adını ekleyin",
             "Rotasyon için tarih/versiyon ekleyin",
-            "Akılda kalıcı anahtar keliem varyasyonuları oluşturun"
+            "Akılda kalıcı anahtar kelime varyasyonları oluşturun"
           ]
         },
         "right": {

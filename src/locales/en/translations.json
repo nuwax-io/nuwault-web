@@ -63,7 +63,7 @@
       "toasts": {
         "keywordAdded": "Keyword added successfully!",
         "keywordExists": "This keyword already exists",
-        "keywordTooShort": "Keyword must be at least 1 character long",
+        "keywordTooShort": "Keyword must be at least 3 characters long",
         "keywordRemoved": "Keyword removed successfully!",
         "passwordCopied": "Password copied to clipboard!",
         "copyFailed": "Failed to copy password",
@@ -117,7 +117,7 @@
         "description": "Same keywords always produce the same password. No randomness means you can recreate your passwords anytime."
       },
       "sha512": {
-        "title": "SHA-512 Encryption",
+        "title": "SHA-512 Hashing",
         "description": "Military-grade SHA-512 hashing ensures your passwords are cryptographically secure."
       },
       "customizable": {
@@ -164,7 +164,7 @@
       },
       "faq-6a": {
         "question": "What if my browser cache is disabled?",
-        "answer": "If your browser cache is disabled, the offline mode will not work properly. Nuwault requires browser caching (Cache API) to store files locally for offline access. To enable full offline functionality: <br><br><strong>Chrome/Edge:</strong> Settings → Privacy and security → Site Settings → Cookies and site data → Allow sites to save and read cookie data<br><br><strong>Firefox:</strong> Settings → Privacy & Security → History → Use custom settings → Accept cookies from sites<br><br><strong>Safari:</strong> Preferences → Privacy → Manage Website Data → Allow<br><br>Without cache, Nuwault will still work online but won't be available when you're disconnected from the internet."
+        "answer": "If your browser cache is disabled, the offline mode will not work properly. Nuwault requires browser caching (Cache API) to store files locally for offline access. To enable full offline functionality: <br><br><strong>Chrome/Edge:</strong> Settings → Privacy and security → Site Settings → Cookies and site data → Allow sites to save and read cookie data<br><br><strong>Firefox:</strong> Settings → Privacy & Security → History → Use custom settings → Accept cookies from sites<br><br><strong>Safari:</strong> Preferences → Privacy → Uncheck \"Prevent cross-site tracking\" (temporarily)<br><br>Without cache, Nuwault will still work online but won't be available when you're disconnected from the internet."
       },
       "faq-6b": {
         "question": "How can I check if my cache is working?",
@@ -272,7 +272,7 @@
       },
       "security": {
         "title": "SHA-512 Security",
-        "description": "Military-grade encryption for your passwords"
+        "description": "Military-grade hashing for your passwords"
       }
     }
   },
