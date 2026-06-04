@@ -8,7 +8,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/utils/**/*.js', 'src/password/**/*.js'],
-      exclude: ['src/**/*.test.js'],
+      exclude: ['test/**/*.test.js'],
     },
   },
 });
