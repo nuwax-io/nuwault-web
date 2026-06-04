@@ -115,7 +115,7 @@ export const GeneratorAnimation = {
    * @param {string} finalPassword - The final password to calculate dimensions for
    */
   async setTextareaForAnimation(textarea, finalPassword) {
-    const originalValue = textarea.value;
+    const _originalValue = textarea.value;
     const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     const tempTextarea = textarea.cloneNode(true);
