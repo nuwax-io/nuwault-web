@@ -29,8 +29,18 @@
         "title": "Character Types",
         "uppercase": "ABC (Uppercase)",
         "lowercase": "abc (Lowercase)",
-        "numbers": "123 (Numbers)",
-        "symbols": "#$& (Symbols)"
+        "numbers": "123 (Numbers)"
+      },
+      "symbolTypes": {
+        "title": "Symbol Types",
+        "logograms": "Logograms",
+        "braces": "Braces",
+        "dashes": "Dashes & Slashes",
+        "punctuation": "Punctuation",
+        "quotes": "Quotes",
+        "math": "Math",
+        "extended": "Extended ASCII",
+        "excludeLookAlike": "Exclude look-alike characters"
       },
       "generatedPassword": {
         "title": "Generated Password",

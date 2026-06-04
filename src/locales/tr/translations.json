@@ -29,8 +29,18 @@
         "title": "Karakter Türleri",
         "uppercase": "ABC (Büyük Harf)",
         "lowercase": "abc (Küçük Harf)",
-        "numbers": "123 (Sayılar)",
-        "symbols": "#$& (Semboller)"
+        "numbers": "123 (Sayılar)"
+      },
+      "symbolTypes": {
+        "title": "Sembol Türleri",
+        "logograms": "Logogram",
+        "braces": "Parantezler",
+        "dashes": "Tire ve Eğik Çizgi",
+        "punctuation": "Noktalama",
+        "quotes": "Tırnak İşaretleri",
+        "math": "Matematik",
+        "extended": "Genişletilmiş ASCII",
+        "excludeLookAlike": "Benzer görünen karakterleri hariç tut"
       },
       "generatedPassword": {
         "title": "Oluşturulan Şifre",

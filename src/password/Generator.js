@@ -9,7 +9,7 @@
  * @author NuwaX
  */
 import { generatePassword } from '@nuwax-io/nuwault-core';
-import { SECURITY_CONFIG, DEFAULT_PASSWORD_OPTIONS, CHARACTER_SETS, KEYWORD_MANAGEMENT_OPTIONS } from '../utils/config.js';
+import { SECURITY_CONFIG, DEFAULT_PASSWORD_OPTIONS, CHARACTER_SETS, KEYWORD_MANAGEMENT_OPTIONS, DEFAULT_SYMBOL_CATEGORIES, buildCharacterSets } from '../utils/config.js';
 import { toast } from '../utils/toast.js';
 import { logger } from '../utils/logger.js';
 import { KeywordChips } from './KeywordChips.js';
@@ -56,6 +56,8 @@ export class PasswordGenerator {
     this.autoGenerate = KEYWORD_MANAGEMENT_OPTIONS.autoGeneratePassword;
     this.maskPassword = KEYWORD_MANAGEMENT_OPTIONS.maskPassword;
     this.originalPassword = '';
+    this.symbolCategories = { ...DEFAULT_SYMBOL_CATEGORIES };
+    this.excludeLookAlike = KEYWORD_MANAGEMENT_OPTIONS.excludeLookAlike;
     
     this.keywordChips = new KeywordChips({
       maskKeywords: this.maskKeywords,
@@ -111,8 +113,47 @@ export class PasswordGenerator {
   }
 
   /**
+   * Escape a string for safe insertion into HTML text content.
+   */
+  _esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /**
+   * Build symbol-category checkbox HTML without nested template literals.
+   * Keeps the chars display safe from HTML injection.
+   */
+  _renderSymbolCheckboxes() {
+    const rows = [
+      ['sym-logograms',   'logograms',   t('password.generator.symbolTypes.logograms'),   '#$%&@^`~'],
+      ['sym-math',        'math',        t('password.generator.symbolTypes.math'),        '<>*+!?='],
+      ['sym-braces',      'braces',      t('password.generator.symbolTypes.braces'),      '{[()]}'],
+      ['sym-dashes',      'dashes',      t('password.generator.symbolTypes.dashes'),      '\\/|_-'],
+      ['sym-punctuation', 'punctuation', t('password.generator.symbolTypes.punctuation'), '.,:;'],
+      ['sym-quotes',      'quotes',      t('password.generator.symbolTypes.quotes'),      '"\''],
+      ['sym-extended',    'extended',    t('password.generator.symbolTypes.extended'),    '½©²±é'],
+    ];
+    const checkboxClass = 'w-4 h-4 mt-0.5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 flex-shrink-0';
+    let html = '';
+    for (const [id, key, label, chars] of rows) {
+      const checked = this.symbolCategories[key] ? 'checked' : '';
+      html += '<label class="flex items-start space-x-2 cursor-pointer">'
+            + '<input type="checkbox" id="' + id + '" ' + checked + ' class="' + checkboxClass + '">'
+            + '<span class="text-sm text-gray-800 dark:text-gray-300">'
+            + this._esc(label)
+            + '<code class="ml-1 text-xs text-gray-500 dark:text-gray-400 font-mono">' + this._esc(chars) + '</code>'
+            + '</span></label>';
+    }
+    return html;
+  }
+
+  /**
    * Generate complete HTML structure for password generator interface
-   * 
+   *
    * @returns {HTMLElement} The rendered password generator component
    */
   render() {
@@ -178,26 +219,38 @@ export class PasswordGenerator {
           </label>
           <div class="grid grid-cols-2 gap-3">
             <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="uppercase" ${this.options.includeUppercase ? 'checked' : ''} 
+              <input type="checkbox" id="uppercase" ${this.options.includeUppercase ? 'checked' : ''}
                      class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
               <span class="text-sm text-gray-800 dark:text-gray-300">${t('password.generator.characterTypes.uppercase')}</span>
             </label>
             <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="lowercase" ${this.options.includeLowercase ? 'checked' : ''} 
+              <input type="checkbox" id="lowercase" ${this.options.includeLowercase ? 'checked' : ''}
                      class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
               <span class="text-sm text-gray-800 dark:text-gray-300">${t('password.generator.characterTypes.lowercase')}</span>
             </label>
             <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="numbers" ${this.options.includeNumbers ? 'checked' : ''} 
+              <input type="checkbox" id="numbers" ${this.options.includeNumbers ? 'checked' : ''}
                      class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
               <span class="text-sm text-gray-800 dark:text-gray-300">${t('password.generator.characterTypes.numbers')}</span>
             </label>
-            <label class="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" id="symbols" ${this.options.includeSymbols ? 'checked' : ''} 
-                     class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-              <span class="text-sm text-gray-800 dark:text-gray-300">${t('password.generator.characterTypes.symbols')}</span>
-            </label>
           </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-800 dark:text-gray-300">
+            ${t('password.generator.symbolTypes.title')}
+          </label>
+          <div class="grid grid-cols-2 gap-3">
+            ${this._renderSymbolCheckboxes()}
+          </div>
+          <label class="flex items-center space-x-2 cursor-pointer mt-2">
+            <input type="checkbox" id="exclude-look-alike" ${this.excludeLookAlike ? 'checked' : ''}
+                   class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <span class="text-sm text-gray-700 dark:text-gray-300">
+              ${t('password.generator.symbolTypes.excludeLookAlike')}
+              <code class="ml-1 text-xs text-gray-500 dark:text-gray-400 font-mono">0 1 l I O | . B 9 G 6</code>
+            </span>
+          </label>
         </div>
 
         <div class="space-y-2">
@@ -451,15 +504,78 @@ export class PasswordGenerator {
       }, this.lengthSliderDelay);
     });
 
-    const checkboxes = ['uppercase', 'lowercase', 'numbers', 'symbols'];
-    checkboxes.forEach(type => {
-      this.element.querySelector(`#${type}`).addEventListener('change', (e) => {
+    // ── Keyword form (critical — registered first) ──────────────────
+    const keywordInput = this.element.querySelector('#keyword-input');
+    const addKeywordBtn = this.element.querySelector('#add-keyword-btn');
+    const keywordForm = this.element.querySelector('#keyword-form');
+
+    if (keywordInput) {
+      keywordInput.addEventListener('input', (e) => {
+        if (e.target.value.includes('\n')) {
+          e.target.value = e.target.value.replace(/\n/g, '');
+          this.keywordInput = e.target.value.trim();
+          if (this.keywordInput) this.addKeyword();
+          return;
+        }
+        this.keywordInput = e.target.value;
+        this.updateAddButtonState();
+        this.updateInputVisualFeedback(e.target);
+      });
+      keywordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          e.preventDefault();
+          this.addKeyword();
+        }
+      });
+    }
+    if (addKeywordBtn) {
+      addKeywordBtn.addEventListener('click', (e) => { e.preventDefault(); this.addKeyword(); });
+    }
+    if (keywordForm) {
+      keywordForm.addEventListener('submit', (e) => { e.preventDefault(); this.addKeyword(); });
+    }
+
+    // ── Character type checkboxes ────────────────────────────────────
+    const charTypeCheckboxes = ['uppercase', 'lowercase', 'numbers'];
+    charTypeCheckboxes.forEach(type => {
+      const el = this.element.querySelector(`#${type}`);
+      if (!el) return;
+      el.addEventListener('change', (e) => {
         this.options[`include${type.charAt(0).toUpperCase() + type.slice(1)}`] = e.target.checked;
-        
         this.updateValidationState();
         this.autoGeneratePassword();
       });
     });
+
+    // ── Symbol category checkboxes ───────────────────────────────────
+    const symbolCheckboxMap = {
+      'sym-logograms':   'logograms',
+      'sym-braces':      'braces',
+      'sym-dashes':      'dashes',
+      'sym-punctuation': 'punctuation',
+      'sym-quotes':      'quotes',
+      'sym-math':        'math',
+      'sym-extended':    'extended',
+    };
+    Object.entries(symbolCheckboxMap).forEach(([id, key]) => {
+      const el = this.element.querySelector(`#${id}`);
+      if (!el) return;
+      el.addEventListener('change', (e) => {
+        this.symbolCategories[key] = e.target.checked;
+        this.options.includeSymbols = Object.values(this.symbolCategories).some(Boolean);
+        this.updateValidationState();
+        this.autoGeneratePassword();
+      });
+    });
+
+    const lookAlikeEl = this.element.querySelector('#exclude-look-alike');
+    if (lookAlikeEl) {
+      lookAlikeEl.addEventListener('change', (e) => {
+        this.excludeLookAlike = e.target.checked;
+        this.updateValidationState();
+        this.autoGeneratePassword();
+      });
+    }
 
     this.element.querySelector('#copy-password').addEventListener('click', () => {
       this.copyPassword();
@@ -480,41 +596,6 @@ export class PasswordGenerator {
     
     passwordOutput.addEventListener('input', () => {
       this.autoResizeTextarea(passwordOutput);
-    });
-
-    const keywordInput = this.element.querySelector('#keyword-input');
-    const addKeywordBtn = this.element.querySelector('#add-keyword-btn');
-    
-    keywordInput.addEventListener('input', (e) => {
-      if (e.target.value.includes('\n')) {
-        e.target.value = e.target.value.replace(/\n/g, '');
-        this.keywordInput = e.target.value.trim();
-        if (this.keywordInput) {
-          this.addKeyword();
-        }
-        return;
-      }
-      this.keywordInput = e.target.value;
-      this.updateAddButtonState();
-      this.updateInputVisualFeedback(e.target);
-    });
-
-    keywordInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.keyCode === 13) {
-        e.preventDefault();
-        this.addKeyword();
-      }
-    });
-
-    addKeywordBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.addKeyword();
-    });
-
-    const keywordForm = this.element.querySelector('#keyword-form');
-    keywordForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.addKeyword();
     });
 
     const maskKeywordsCheckbox = this.element.querySelector('#mask-keywords');
@@ -748,31 +829,51 @@ export class PasswordGenerator {
                                     this.options.includeSymbols;
       
       if (validKeywords.length > 0 && hasMinimumLength && hasValidCharacterTypes) {
-        // Generate password with current options
-        const password = await generatePassword(validKeywords, this.options);
-        
-        // Validate the generated password
+        const customCharacterSets = buildCharacterSets(this.symbolCategories, this.excludeLookAlike);
+        const symbolsEnabled = Object.values(this.symbolCategories).some(Boolean);
+
+        // Use object-form API so characterSets is forwarded to the core
+        const result = await generatePassword({
+          keywords: validKeywords,
+          length: this.options.length,
+          options: {
+            includeUppercase: this.options.includeUppercase,
+            includeLowercase: this.options.includeLowercase,
+            includeNumbers:   this.options.includeNumbers,
+            includeSymbols:   symbolsEnabled,
+          },
+          masterSalt:    this.options.masterSalt || null,
+          characterSets: customCharacterSets,
+        });
+        const password = result.password;
+
         if (password && password.length === this.options.length) {
-          // Check if password contains required character types
+          // Set-based membership check — no regex escaping needed
+          const inSet = (str, charset) => {
+            const s = new Set(charset);
+            for (const c of str) { if (s.has(c)) return true; }
+            return false;
+          };
+
           let hasUppercase = false, hasLowercase = false, hasNumbers = false, hasSymbols = false;
-          
+
           if (this.options.includeUppercase) {
-            hasUppercase = /[A-Z]/.test(password);
+            hasUppercase = inSet(password, customCharacterSets.UPPERCASE);
           }
           if (this.options.includeLowercase) {
-            hasLowercase = /[a-z]/.test(password);
+            hasLowercase = inSet(password, customCharacterSets.LOWERCASE);
           }
           if (this.options.includeNumbers) {
-            hasNumbers = /[0-9]/.test(password);
+            hasNumbers = inSet(password, customCharacterSets.NUMBERS);
           }
-          if (this.options.includeSymbols) {
-            hasSymbols = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+          if (symbolsEnabled && customCharacterSets.SYMBOLS.length > 0) {
+            hasSymbols = inSet(password, customCharacterSets.SYMBOLS);
           }
-          
+
           const isValidPassword = (!this.options.includeUppercase || hasUppercase) &&
                                  (!this.options.includeLowercase || hasLowercase) &&
                                  (!this.options.includeNumbers || hasNumbers) &&
-                                 (!this.options.includeSymbols || hasSymbols);
+                                 (!symbolsEnabled || hasSymbols);
           
           if (isValidPassword && !this.isAnimating) {
             await this.animatePasswordGeneration(password);
@@ -847,14 +948,16 @@ export class PasswordGenerator {
     
     await this.setTextareaForAnimation(passwordOutput, finalPassword);
     
+    const animSets = buildCharacterSets(this.symbolCategories, this.excludeLookAlike);
+    const symbolsEnabled = Object.values(this.symbolCategories).some(Boolean);
     let availableChars = '';
-    if (this.options.includeUppercase) availableChars += CHARACTER_SETS.UPPERCASE;
-    if (this.options.includeLowercase) availableChars += CHARACTER_SETS.LOWERCASE;
-    if (this.options.includeNumbers) availableChars += CHARACTER_SETS.NUMBERS;
-    if (this.options.includeSymbols) availableChars += CHARACTER_SETS.SYMBOLS;
-    
+    if (this.options.includeUppercase) availableChars += animSets.UPPERCASE;
+    if (this.options.includeLowercase) availableChars += animSets.LOWERCASE;
+    if (this.options.includeNumbers)   availableChars += animSets.NUMBERS;
+    if (symbolsEnabled)                availableChars += animSets.SYMBOLS;
+
     if (!availableChars) {
-      availableChars = CHARACTER_SETS.LOWERCASE;
+      availableChars = animSets.LOWERCASE || CHARACTER_SETS.LOWERCASE;
     }
 
     const animationDuration = 3500;
