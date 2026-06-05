@@ -11,6 +11,18 @@
     <link rel="manifest" href="/manifest.json" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'none';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data:;
+      font-src 'self';
+      connect-src 'self';
+      manifest-src 'self';
+      worker-src 'self';
+      base-uri 'self';
+      form-action 'none';
+    " />
 
     <meta name="description" content="%VITE_APP_DESCRIPTION%" />
     <meta name="theme-color" content="%VITE_PWA_THEME_COLOR%" />
@@ -18,55 +30,67 @@
     <meta name="keywords" content="%VITE_APP_KEYWORDS%" />
     
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="%VITE_APP_NAME%" />
     <meta property="og:title" content="%VITE_APP_NAME% - %VITE_APP_TITLE%" />
     <meta property="og:description" content="%VITE_APP_DESCRIPTION%" />
-    <meta property="og:url" content="%VITE_APP_URL%" />
-    
+    <meta property="og:url" content="%VITE_APP_URL%/" />
+    <meta property="og:image" content="%VITE_APP_URL%/assets/img/logo/nuwault_logo_horizontal_teal_360px.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="tr_TR" />
+
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="%VITE_APP_NAME% - %VITE_APP_TITLE%" />
     <meta property="twitter:description" content="%VITE_APP_DESCRIPTION%" />
+    <meta property="twitter:url" content="%VITE_APP_URL%/" />
+    <meta property="twitter:image" content="%VITE_APP_URL%/assets/img/logo/nuwault_logo_horizontal_teal_360px.png" />
 
     <link rel="canonical" href="%VITE_APP_URL%/" />
+    <link rel="alternate" hreflang="x-default" href="%VITE_APP_URL%/" />
+    <link rel="alternate" hreflang="en" href="%VITE_APP_URL%/" />
+    <link rel="alternate" hreflang="tr" href="%VITE_APP_URL%/" />
     
-    <!-- SEO: Prevent duplicate content by redirecting invalid URLs -->
-    <script>
-      // Early redirect before any other scripts load
-      (function() {
-        // Skip redirect for file:// protocol (local file opening)
-        if (window.location.protocol === 'file:') {
-          return;
-        }
-        
-        // Only redirect on official production domain
-        const hostname = window.location.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.');
-        const isOfficialProduction = hostname === 'nuwault.com';
-        
-        if (isLocalhost || !isOfficialProduction) {
-          return;
-        }
-        
-        const currentPath = window.location.pathname;
-        const currentHash = window.location.hash;
-        
-        // Check if we're on an invalid path (not root and not special files)
-        if (currentPath !== '/' && currentPath !== '/index.html' && 
-            currentPath !== '/robots.txt' && currentPath !== '/sitemap.xml') {
-          
-          // Get canonical URL from meta tag
-          const canonicalLink = document.querySelector('link[rel="canonical"]');
-          const canonicalUrl = canonicalLink ? canonicalLink.href : window.location.origin;
-          
-          // Redirect to canonical URL, preserving hash if present
-          const redirectUrl = currentHash ? canonicalUrl + currentHash : canonicalUrl;
-          window.location.replace(redirectUrl);
-        }
-      })();
-    </script>
-        
+    <script src="/redirect.js" defer></script>
+
     <title>%VITE_APP_NAME% - %VITE_APP_TITLE%</title>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "%VITE_APP_NAME%",
+      "url": "%VITE_APP_URL%/",
+      "description": "%VITE_APP_DESCRIPTION%",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "inLanguage": ["en", "tr"],
+      "availableLanguage": [
+        { "@type": "Language", "name": "English", "alternateName": "en" },
+        { "@type": "Language", "name": "Turkish", "alternateName": "tr" }
+      ],
+      "isAccessibleForFree": true,
+      "keywords": "%VITE_APP_KEYWORDS%",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "%VITE_APP_AUTHOR%",
+        "url": "%VITE_SOCIAL_GITHUB%"
+      }
+    }
+    </script>
   </head>
   <body>
+    <noscript>
+      <div style="font-family:sans-serif;max-width:640px;margin:4rem auto;padding:0 1rem">
+        <h1>Nuwault – Secure &amp; Deterministic Passwords</h1>
+        <p>Nuwault is a privacy-first, offline password generator that creates secure and deterministic passwords from your keywords. No cloud, no storage – just pure cryptographic logic.</p>
+        <p>Please enable JavaScript to use Nuwault.</p>
+      </div>
+    </noscript>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>

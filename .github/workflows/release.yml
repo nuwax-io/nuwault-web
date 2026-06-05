@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+      version:
+        description: 'Specific version override (e.g. 1.0.0, leave empty for auto)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Configure git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git remote set-url origin \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      - name: Install git-cliff
+        run: |
+          CLIFF_VERSION="2.12.0"
+          curl -sSfL "https://github.com/orhun/git-cliff/releases/download/v${CLIFF_VERSION}/git-cliff-${CLIFF_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            | tar -xz -C /tmp
+          find /tmp -name "git-cliff" -type f | head -1 | xargs -I{} sudo mv {} /usr/local/bin/git-cliff
+          git-cliff --version
+
+      # ── Determine next version ────────────────────────────────────────
+      - name: Determine next version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            V="${{ inputs.version }}"
+            echo "next=v${V#v}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LATEST=$(git tag --sort=-version:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+
+          if [ -z "$LATEST" ]; then
+            echo "next=v0.1.0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ inputs.bump }}" = "auto" ]; then
+            NEXT=$(git cliff --bumped-version 2>/dev/null | tr -d '[:space:]')
+            if [ -z "$NEXT" ] || [ "$NEXT" = "$LATEST" ]; then
+              IFS='.' read -r MAJ MIN PATCH <<< "${LATEST#v}"
+              NEXT="v${MAJ}.${MIN}.$((PATCH + 1))"
+            fi
+          else
+            IFS='.' read -r MAJ MIN PATCH <<< "${LATEST#v}"
+            case "${{ inputs.bump }}" in
+              major) NEXT="v$((MAJ + 1)).0.0" ;;
+              minor) NEXT="v${MAJ}.$((MIN + 1)).0" ;;
+              patch) NEXT="v${MAJ}.${MIN}.$((PATCH + 1))" ;;
+            esac
+          fi
+
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+
+      # ── Install, lint & test ─────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      # ── Version bump ──────────────────────────────────────────────────
+      - name: Bump package.json version
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          npm version "${VERSION#v}" --no-git-tag-version
+
+      # ── Changelog ────────────────────────────────────────────────────
+      - name: Generate release notes
+        run: |
+          git cliff --tag "${{ steps.version.outputs.next }}" --unreleased --strip all \
+            > /tmp/release-notes.md
+          echo "── Release notes preview ──"
+          cat /tmp/release-notes.md
+
+      - name: Update CHANGELOG.md
+        run: git cliff --tag "${{ steps.version.outputs.next }}" -o CHANGELOG.md
+
+      # ── Commit, tag and push ──────────────────────────────────────────
+      - name: Commit, tag and push
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          git add package.json CHANGELOG.md
+          git commit -m "chore(release): ${VERSION}"
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "${{ github.ref_name }}" --follow-tags
+
+      # ── Build ─────────────────────────────────────────────────────────
+      # Secret required: ENV_PRODUCTION (contents of .env.production file)
+      - name: Write production env file
+        run: echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
+
+      - name: Build
+        run: npm run build
+
+      # ── GitHub Release ────────────────────────────────────────────────
+      - name: Package dist
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          cd dist
+          zip -r "../nuwault-web-${VERSION}.zip" .
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.next }}
+          name: Release ${{ steps.version.outputs.next }}
+          body_path: /tmp/release-notes.md
+          generate_release_notes: true
+          make_latest: true
+          files: nuwault-web-${{ steps.version.outputs.next }}.zip

@@ -105,6 +105,7 @@ const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/redirect.js',
   
   // Icons - all sizes for PWA compatibility (verified to exist)
   '/assets/img/icons/nuwault_icon_16x16.png',
@@ -429,9 +430,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
     return;
   }
-  
-  self.skipWaiting();
-  
+
   event.waitUntil(
     (async () => {
       try {
@@ -530,13 +529,10 @@ self.addEventListener('install', (event) => {
         }
         
         await CacheManager.cleanupOldCaches();
-        
-        await self.skipWaiting();
         logger.log(`Service worker v{{APP_VERSION}} installed successfully`);
-        
+
       } catch (error) {
         logger.error('Error during service worker installation:', error);
-        self.skipWaiting();
       }
     })()
   );
@@ -637,13 +633,8 @@ self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
       event.respondWith(
         fetch(event.request, { cache: 'no-cache' })
-          .then(response => {
-            if (response.ok) {
-              return response;
-            }
-            throw new Error('Dev server not responding');
-          })
           .catch(() => {
+            // Only serve offline page on actual network failure (dev server not running)
             return new Response(DEV_OFFLINE_PAGE, {
               headers: { 'Content-Type': 'text/html' },
               status: 503

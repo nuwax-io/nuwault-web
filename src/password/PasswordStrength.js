@@ -75,7 +75,7 @@ export class PasswordStrength {
     }
 
     let score = 0;
-    let feedback = [];
+    const feedback = [];
     const length = password.length;
 
     // Critical length threshold - severe penalty for extremely short passwords
@@ -132,16 +132,11 @@ export class PasswordStrength {
 
     // Entropy calculation with improved algorithm
     const uniqueChars = new Set(password).size;
-    let entropyBonus = 0;
-    
-    // Calculate entropy based on both unique characters and password length
     // Formula: Base entropy from unique chars + Length multiplier + Diversity factor
     const baseEntropy = Math.min(15, uniqueChars * 1.5); // Max 15 points for unique chars
     const lengthMultiplier = Math.min(1.5, length / 8); // Length factor (max 1.5x)
     const diversityFactor = uniqueChars / length; // Penalize repetition (0-1)
-    
-    entropyBonus = Math.floor(baseEntropy * lengthMultiplier * Math.max(0.4, diversityFactor));
-    entropyBonus = Math.min(20, entropyBonus); // Cap at 20 points
+    const entropyBonus = Math.min(20, Math.floor(baseEntropy * lengthMultiplier * Math.max(0.4, diversityFactor))); // Cap at 20 points
     
     score += entropyBonus;
 

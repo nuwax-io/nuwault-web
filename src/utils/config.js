@@ -78,9 +78,10 @@ export const DEFAULT_PASSWORD_OPTIONS = {
  * Keyword management behavior settings
  */
 export const KEYWORD_MANAGEMENT_OPTIONS = {
-  maskKeywords: import.meta.env.VITE_DEFAULT_MASK_KEYWORDS === 'true',
+  maskKeywords:         import.meta.env.VITE_DEFAULT_MASK_KEYWORDS === 'true',
   autoGeneratePassword: import.meta.env.VITE_DEFAULT_AUTO_GENERATE_PASSWORD === 'true',
-  maskPassword: import.meta.env.VITE_DEFAULT_MASK_PASSWORD === 'true'
+  maskPassword:         import.meta.env.VITE_DEFAULT_MASK_PASSWORD === 'true',
+  excludeLookAlike:     import.meta.env.VITE_DEFAULT_EXCLUDE_LOOK_ALIKE === 'true',
 };
 
 /**
@@ -89,9 +90,99 @@ export const KEYWORD_MANAGEMENT_OPTIONS = {
 export const CHARACTER_SETS = {
   UPPERCASE: import.meta.env.VITE_CHARSET_UPPERCASE || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   LOWERCASE: import.meta.env.VITE_CHARSET_LOWERCASE || 'abcdefghijklmnopqrstuvwxyz',
-  NUMBERS: import.meta.env.VITE_CHARSET_NUMBERS || '0123456789',
-  SYMBOLS: import.meta.env.VITE_CHARSET_SYMBOLS || '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  NUMBERS:   import.meta.env.VITE_CHARSET_NUMBERS   || '0123456789',
+  SYMBOLS:   import.meta.env.VITE_CHARSET_SYMBOLS   || '!@#$%^&*()_+-=[]{}|;:,.<>?'
 };
+
+/**
+ * Symbol subcategory character groups.
+ * When the five default-on groups are all selected and extras are off,
+ * buildSymbolsCharset() returns the original SYMBOLS string verbatim so that
+ * previously generated passwords remain identical.
+ */
+export const SYMBOL_GROUPS = {
+  LOGOGRAMS:   import.meta.env.VITE_SYMBOL_LOGOGRAMS   || '#$%&@^`~',
+  MATH:        import.meta.env.VITE_SYMBOL_MATH         || '<>*+!?=',
+  BRACES:      import.meta.env.VITE_SYMBOL_BRACES       || '{[()]}',
+  DASHES:      import.meta.env.VITE_SYMBOL_DASHES       || '\\/|_-',
+  PUNCTUATION: import.meta.env.VITE_SYMBOL_PUNCTUATION  || '.,:;',
+  QUOTES:      import.meta.env.VITE_SYMBOL_QUOTES       || '"\'',
+  EXTENDED:    import.meta.env.VITE_SYMBOL_EXTENDED     || '½©ÎÙõØÚª²ýïº·Á¤æê±áìßçÒä¹îâ¥¯ÉòóÔÇ¾ÂÜ¼åëü¡»Ðé÷',
+};
+
+/**
+ * Characters that are visually ambiguous and can be excluded on request.
+ */
+export const LOOK_ALIKE_CHARS = import.meta.env.VITE_LOOK_ALIKE_CHARS || '01lIO|.B9G6';
+
+/**
+ * Default symbol category selection.
+ * All five content categories (logograms + math + braces + dashes + punctuation)
+ * must be true for isOriginalDefault to fire and preserve existing passwords.
+ * Env pattern: default-ON  → !== 'false'  (unset = true)
+ *              default-OFF → === 'true'   (unset = false)
+ */
+export const DEFAULT_SYMBOL_CATEGORIES = {
+  logograms:   import.meta.env.VITE_DEFAULT_SYMBOL_LOGOGRAMS   !== 'false',
+  math:        import.meta.env.VITE_DEFAULT_SYMBOL_MATH         !== 'false',
+  braces:      import.meta.env.VITE_DEFAULT_SYMBOL_BRACES       !== 'false',
+  dashes:      import.meta.env.VITE_DEFAULT_SYMBOL_DASHES       !== 'false',
+  punctuation: import.meta.env.VITE_DEFAULT_SYMBOL_PUNCTUATION  !== 'false',
+  quotes:      import.meta.env.VITE_DEFAULT_SYMBOL_QUOTES       === 'true',
+  extended:    import.meta.env.VITE_DEFAULT_SYMBOL_EXTENDED     === 'true',
+};
+
+/**
+ * Build the SYMBOLS charset from the selected subcategories.
+ * Returns the original SYMBOLS string when the selection is unchanged so that
+ * previously generated passwords remain identical.
+ */
+export function buildSymbolsCharset(categories, excludeLookAlike = false) {
+  const isOriginalDefault =
+    categories.logograms   === true  &&
+    categories.math        === true  &&
+    categories.braces      === true  &&
+    categories.dashes      === true  &&
+    categories.punctuation === true  &&
+    categories.quotes      === false &&
+    categories.extended    === false &&
+    !excludeLookAlike;
+
+  if (isOriginalDefault) return CHARACTER_SETS.SYMBOLS;
+
+  let charset = '';
+  if (categories.logograms)   charset += SYMBOL_GROUPS.LOGOGRAMS;
+  if (categories.math)        charset += SYMBOL_GROUPS.MATH;
+  if (categories.braces)      charset += SYMBOL_GROUPS.BRACES;
+  if (categories.dashes)      charset += SYMBOL_GROUPS.DASHES;
+  if (categories.punctuation) charset += SYMBOL_GROUPS.PUNCTUATION;
+  if (categories.quotes)      charset += SYMBOL_GROUPS.QUOTES;
+  if (categories.extended)    charset += SYMBOL_GROUPS.EXTENDED;
+
+  return charset;
+}
+
+/**
+ * Build the full characterSets object used by the core, applying look-alike
+ * exclusion across all active sets when requested.
+ */
+export function buildCharacterSets(symbolCategories, excludeLookAlike = false) {
+  let uppercase = CHARACTER_SETS.UPPERCASE;
+  let lowercase = CHARACTER_SETS.LOWERCASE;
+  let numbers   = CHARACTER_SETS.NUMBERS;
+  let symbols   = buildSymbolsCharset(symbolCategories, excludeLookAlike);
+
+  if (excludeLookAlike) {
+    const excluded = new Set(LOOK_ALIKE_CHARS.split(''));
+    const filter = str => str.split('').filter(c => !excluded.has(c)).join('');
+    uppercase = filter(uppercase);
+    lowercase = filter(lowercase);
+    numbers   = filter(numbers);
+    symbols   = filter(symbols);
+  }
+
+  return { UPPERCASE: uppercase, LOWERCASE: lowercase, NUMBERS: numbers, SYMBOLS: symbols };
+}
 
 /**
  * Internationalization configuration

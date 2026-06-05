@@ -123,7 +123,7 @@ type(scope): description
     - Change: Specific change description
 ```
 
-**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `sec`
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `security`
 
 ## Security Requirements
 

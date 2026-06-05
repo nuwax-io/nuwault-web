@@ -3,16 +3,7 @@
   "version": "1.2.2",
   "description": "Advanced keyword-based password generator with client-side security, privacy focus and PWA support",
   "type": "module",
-  "private": false,
-  "files": [
-    "dist",
-    "public",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "SECURITY.md"
-  ],
+  "private": true,
   "scripts": {
     "dev": "npm run generate-sw && vite",
     "build": "npm run generate-sw && vite build",
@@ -25,7 +16,12 @@
     "pwa:setup": "npm run pwa:install-deps && npm run generate-icons && npm run generate-sw",
     "clean": "rm -rf dist",
     "validate": "npm run build",
-    "prepublishOnly": "npm run clean && npm run validate"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "check": "npm run lint && npm run test && npm run build"
   },
   "keywords": [
     "password",
@@ -50,9 +46,6 @@
   ],
   "author": "NuwaX",
   "license": "GPL-3.0-or-later",
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/nuwax-io/nuwault-web.git"
@@ -62,16 +55,19 @@
   },
   "homepage": "https://nuwault.com",
   "devDependencies": {
-    "@vitejs/plugin-legacy": "^7.0.0",
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^10.4.1",
+    "globals": "^17.6.0",
     "sharp": "^0.34.2",
     "terser": "^5.43.1",
-    "vite": "^7.0.0",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite": "^8.0.14",
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@nuwax-io/nuwault-core": "^1.0.1",
     "@tailwindcss/vite": "^4.1.11",
-    "i18next": "^25.3.0",
+    "i18next": "^26.2.0",
     "tailwindcss": "^4.1.11"
   },
   "engines": {

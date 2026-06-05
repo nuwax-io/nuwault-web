@@ -1,280 +1,184 @@
 /**
  * @fileoverview Toast Notification System
- * Modern replacement for alert() with customizable types and animations
- * Supports success, error, warning, and info notifications with auto-dismiss
- * @author NuwaX
  */
 
-/**
- * Toast notification types with semantic meanings
- */
 const TOAST_TYPES = {
   SUCCESS: 'success',
-  ERROR: 'error',
+  ERROR:   'error',
   WARNING: 'warning',
-  INFO: 'info'
+  INFO:    'info',
 };
 
-/**
- * Toast system configuration
- */
 const TOAST_CONFIG = {
-  DURATION: 4000,
-  MAX_TOASTS: 5,
-  CONTAINER_ID: 'toast-container'
+  DURATION:     4000,
+  MAX_TOASTS:   5,
+  CONTAINER_ID: 'toast-container',
 };
 
-/**
- * Create toast container element if it doesn't exist
- * @returns {HTMLElement} Toast container element
- */
-function createToastContainer() {
+const TYPE_CONFIG = {
+  success: { bg: '#10b981', border: '#059669', icon: '✓' },
+  error:   { bg: '#ef4444', border: '#dc2626', icon: '✕' },
+  warning: { bg: '#f59e0b', border: '#d97706', icon: '!' },
+  info:    { bg: '#3b82f6', border: '#2563eb', icon: 'i' },
+};
+
+function injectKeyframes() {
+  if (document.getElementById('toast-keyframes')) return;
+  const style = document.createElement('style');
+  style.id = 'toast-keyframes';
+  style.textContent = `
+    @keyframes toastIn {
+      from { transform: translateX(calc(100% + 1.5rem)); opacity: 0; }
+      to   { transform: translateX(0);                  opacity: 1; }
+    }
+    @keyframes toastOut {
+      from { transform: translateX(0);                  opacity: 1; }
+      to   { transform: translateX(calc(100% + 1.5rem)); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function getContainer() {
   let container = document.getElementById(TOAST_CONFIG.CONTAINER_ID);
-  
   if (!container) {
     container = document.createElement('div');
     container.id = TOAST_CONFIG.CONTAINER_ID;
-    container.className = 'fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none';
-    container.style.cssText = `
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 0.5rem;
-      pointer-events: none;
-      max-width: 400px;
-    `;
+    container.style.cssText = [
+      'position:fixed',
+      'bottom:1.5rem',
+      'right:1.5rem',
+      'z-index:9999',
+      'display:flex',
+      'flex-direction:column',
+      'align-items:flex-end',
+      'gap:0.5rem',
+      'pointer-events:none',
+      'max-width:min(360px,calc(100vw - 3rem))',
+      'width:100%',
+    ].join(';');
     document.body.appendChild(container);
   }
-  
   return container;
 }
 
-/**
- * Generate CSS styles for toast based on type
- * @param {string} type - Toast type
- * @returns {string} CSS style string
- */
-function getToastStyles(type) {
-  const baseStyles = `
-    pointer-events: auto;
-    padding: 1rem 1.25rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25rem;
-    max-width: 100%;
-    word-wrap: break-word;
-    animation: slideIn 0.3s ease-out;
-    transition: all 0.3s ease;
-  `;
-
-  const typeStyles = {
-    [TOAST_TYPES.SUCCESS]: `
-      background-color: #10b981;
-      color: white;
-      border-left: 4px solid #059669;
-    `,
-    [TOAST_TYPES.ERROR]: `
-      background-color: #ef4444;
-      color: white;
-      border-left: 4px solid #dc2626;
-    `,
-    [TOAST_TYPES.WARNING]: `
-      background-color: #f59e0b;
-      color: white;
-      border-left: 4px solid #d97706;
-    `,
-    [TOAST_TYPES.INFO]: `
-      background-color: #3b82f6;
-      color: white;
-      border-left: 4px solid #2563eb;
-    `
-  };
-
-  return baseStyles + (typeStyles[type] || typeStyles[TOAST_TYPES.INFO]);
+function dismiss(toast, animationDuration = 250) {
+  if (!toast?.parentNode) return;
+  toast.style.animation = `toastOut ${animationDuration}ms ease-in forwards`;
+  setTimeout(() => toast.parentNode?.removeChild(toast), animationDuration);
 }
 
-/**
- * Get appropriate icon for toast type
- * @param {string} type - Toast type
- * @returns {string} Emoji icon
- */
-function getToastIcon(type) {
-  const icons = {
-    [TOAST_TYPES.SUCCESS]: '✅',
-    [TOAST_TYPES.ERROR]: '❌',
-    [TOAST_TYPES.WARNING]: '⚠️',
-    [TOAST_TYPES.INFO]: 'ℹ️'
-  };
-  
-  return icons[type] || icons[TOAST_TYPES.INFO];
-}
-
-/**
- * Create and display toast notification
- * @param {string} message - Toast message content
- * @param {string} type - Toast type
- * @param {number} duration - Auto-dismiss duration in milliseconds
- * @returns {HTMLElement} Created toast element
- */
 function createToast(message, type = TOAST_TYPES.INFO, duration = TOAST_CONFIG.DURATION) {
-  const container = createToastContainer();
-  
-  const existingToasts = container.children;
-  if (existingToasts.length >= TOAST_CONFIG.MAX_TOASTS) {
-    existingToasts[0].remove();
+  injectKeyframes();
+
+  const container = getContainer();
+
+  // Remove oldest toast (first child = topmost in stack) if limit reached
+  while (container.children.length >= TOAST_CONFIG.MAX_TOASTS) {
+    dismiss(container.firstElementChild, 150);
   }
-  
+
+  const config = TYPE_CONFIG[type] ?? TYPE_CONFIG.info;
+
   const toast = document.createElement('div');
-  toast.style.cssText = getToastStyles(type);
-  
-  const icon = document.createElement('span');
-  icon.textContent = getToastIcon(type);
-  icon.style.cssText = 'font-size: 1.125rem; flex-shrink: 0;';
-  
-  const messageEl = document.createElement('span');
-  messageEl.textContent = message;
-  messageEl.style.cssText = 'flex: 1; word-break: break-word;';
-  
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'polite');
+  toast.style.cssText = [
+    `background:${config.bg}`,
+    `border-left:4px solid ${config.border}`,
+    'color:white',
+    'padding:0.75rem 1rem',
+    'border-radius:0.5rem',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.2)',
+    'display:flex',
+    'align-items:center',
+    'gap:0.625rem',
+    'font-size:0.875rem',
+    'font-weight:500',
+    'line-height:1.4',
+    'width:360px',
+    'max-width:100%',
+    'pointer-events:auto',
+    'will-change:transform,opacity',
+    'animation:toastIn 0.3s cubic-bezier(0.21,1.02,0.73,1) forwards',
+  ].join(';');
+
+  // Icon badge
+  const iconEl = document.createElement('span');
+  iconEl.setAttribute('aria-hidden', 'true');
+  iconEl.style.cssText = [
+    'flex-shrink:0',
+    'width:1.25rem',
+    'height:1.25rem',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'background:rgba(255,255,255,0.25)',
+    'border-radius:50%',
+    'font-size:0.6875rem',
+    'font-weight:700',
+    'font-style:normal',
+    'line-height:1',
+  ].join(';');
+  iconEl.textContent = config.icon;
+
+  // Message
+  const msgEl = document.createElement('span');
+  msgEl.style.cssText = 'flex:1;word-break:break-word;min-width:0';
+  msgEl.textContent = message;
+
+  // Close button
   const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '×';
-  closeBtn.style.cssText = `
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 1.25rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 0.5rem;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    flex-shrink: 0;
-  `;
-  closeBtn.onmouseover = () => closeBtn.style.opacity = '1';
-  closeBtn.onmouseout = () => closeBtn.style.opacity = '0.7';
-  
-  toast.appendChild(icon);
-  toast.appendChild(messageEl);
-  toast.appendChild(closeBtn);
-  
-  const style = document.createElement('style');
-  if (!document.querySelector('#toast-animations')) {
-    style.id = 'toast-animations';
-    style.textContent = `
-      @keyframes slideIn {
-        from {
-          transform: translateX(100%) translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0) translateY(0);
-          opacity: 1;
-        }
-      }
-      
-      @keyframes slideOut {
-        from {
-          transform: translateX(0) translateY(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(100%) translateY(20px);
-          opacity: 0;
-        }
-      }
-      
-      .toast-exit {
-        animation: slideOut 0.3s ease-in forwards;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-  
-  const removeToast = () => {
-    if (toast.parentNode) {
-      toast.classList.add('toast-exit');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    }
-  };
-  
-  closeBtn.onclick = removeToast;
-  
-  if (duration > 0) {
-    setTimeout(removeToast, duration);
-  }
-  
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.style.cssText = [
+    'background:none',
+    'border:none',
+    'color:rgba(255,255,255,0.7)',
+    'font-size:1.25rem',
+    'line-height:1',
+    'cursor:pointer',
+    'padding:0',
+    'flex-shrink:0',
+    'transition:color 0.15s',
+    'display:flex',
+    'align-items:center',
+  ].join(';');
+  closeBtn.onmouseenter = () => { closeBtn.style.color = 'white'; };
+  closeBtn.onmouseleave = () => { closeBtn.style.color = 'rgba(255,255,255,0.7)'; };
+
+  toast.append(iconEl, msgEl, closeBtn);
   container.appendChild(toast);
-  
+
+  // Auto-dismiss timer
+  let timer = null;
+  const startTimer = (delay = duration) => {
+    if (delay > 0) timer = setTimeout(() => dismiss(toast), delay);
+  };
+  const clearTimer = () => clearTimeout(timer);
+
+  closeBtn.onclick = () => { clearTimer(); dismiss(toast); };
+
+  // Pause on hover
+  toast.onmouseenter = clearTimer;
+  toast.onmouseleave = () => startTimer(1200);
+
+  startTimer();
+
   return toast;
 }
 
-/**
- * Toast notification API with typed methods
- */
 export const toast = {
-  /**
-   * Show success toast
-   * @param {string} message - Success message
-   * @param {number} duration - Auto-dismiss duration
-   * @returns {HTMLElement} Toast element
-   */
   success: (message, duration) => createToast(message, TOAST_TYPES.SUCCESS, duration),
-  
-  /**
-   * Show error toast
-   * @param {string} message - Error message
-   * @param {number} duration - Auto-dismiss duration
-   * @returns {HTMLElement} Toast element
-   */
-  error: (message, duration) => createToast(message, TOAST_TYPES.ERROR, duration),
-  
-  /**
-   * Show warning toast
-   * @param {string} message - Warning message
-   * @param {number} duration - Auto-dismiss duration
-   * @returns {HTMLElement} Toast element
-   */
+  error:   (message, duration) => createToast(message, TOAST_TYPES.ERROR,   duration),
   warning: (message, duration) => createToast(message, TOAST_TYPES.WARNING, duration),
-  
-  /**
-   * Show info toast
-   * @param {string} message - Info message
-   * @param {number} duration - Auto-dismiss duration
-   * @returns {HTMLElement} Toast element
-   */
-  info: (message, duration) => createToast(message, TOAST_TYPES.INFO, duration),
-  
-  /**
-   * Show generic toast with custom type
-   * @param {string} message - Toast message
-   * @param {string} type - Toast type
-   * @param {number} duration - Auto-dismiss duration
-   * @returns {HTMLElement} Toast element
-   */
-  show: (message, type, duration) => createToast(message, type, duration),
-  
-  /**
-   * Clear all active toasts
-   */
-  clear: () => {
+  info:    (message, duration) => createToast(message, TOAST_TYPES.INFO,    duration),
+  show:    (message, type, duration) => createToast(message, type, duration),
+  clear:   () => {
     const container = document.getElementById(TOAST_CONFIG.CONTAINER_ID);
-    if (container) {
-      container.innerHTML = '';
-    }
-  }
+    if (container) container.innerHTML = '';
+  },
 };
 
 export { TOAST_TYPES };
-export default toast; 
+export default toast;

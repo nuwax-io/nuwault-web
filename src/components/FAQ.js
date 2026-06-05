@@ -101,7 +101,7 @@ class FAQController {
     
     container.innerHTML = '';
     
-    faqData.forEach((item, index) => {
+    faqData.forEach((item, _index) => {
       const faqItem = document.createElement('div');
       faqItem.className = 'faq-item card-bg rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md';
       

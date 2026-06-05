@@ -7,6 +7,8 @@
 
 import { logger } from './logger.js'
 
+let _scrollObserver = null;
+
 /**
  * Initialize smooth scrolling behavior for anchor links with header offset
  * Safe to call multiple times - removes existing listeners to prevent duplicates
@@ -27,18 +29,18 @@ export const initSmoothScrolling = () => {
           const header = document.querySelector('header')
           const headerHeight = header ? header.offsetHeight : 0
           const offsetPosition = target.offsetTop - headerHeight
-          
+
           window.scrollTo({
             top: offsetPosition,
             behavior: 'smooth'
           })
         }
       }
-      
+
       anchor._smoothScrollListener = smoothScrollListener
       anchor.addEventListener('click', smoothScrollListener)
     })
-    
+
     logger.log('[SmoothScroll] Smooth scrolling initialized for anchor links')
   } catch (error) {
     logger.error('[SmoothScroll] Error initializing smooth scrolling:', error)
@@ -51,17 +53,17 @@ export const initSmoothScrolling = () => {
  */
 export const setupSmoothScrollManager = () => {
   initSmoothScrolling()
-  
+
   window.addEventListener('languageChanged', () => {
     setTimeout(() => {
       initSmoothScrolling()
       logger.log('[SmoothScroll] Smooth scrolling reinitialized after language change')
     }, 100)
   })
-  
-  const observer = new MutationObserver((mutations) => {
+
+  _scrollObserver = new MutationObserver((mutations) => {
     let shouldReinit = false
-    
+
     mutations.forEach((mutation) => {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
         mutation.addedNodes.forEach((node) => {
@@ -74,27 +76,26 @@ export const setupSmoothScrollManager = () => {
         })
       }
     })
-    
+
     if (shouldReinit) {
-      clearTimeout(observer._reinitTimeout)
-      observer._reinitTimeout = setTimeout(() => {
+      clearTimeout(_scrollObserver._reinitTimeout)
+      _scrollObserver._reinitTimeout = setTimeout(() => {
         initSmoothScrolling()
         logger.log('[SmoothScroll] Smooth scrolling reinitialized after DOM changes')
       }, 150)
     }
   })
-  
-  observer.observe(document.body, {
+
+  _scrollObserver.observe(document.body, {
     childList: true,
     subtree: true
   })
-  
+
   logger.log('[SmoothScroll] Smooth scroll manager initialized with language change and DOM mutation listeners')
 }
 
 /**
- * Clean up all smooth scrolling listeners
- * Useful for testing or component cleanup
+ * Clean up all smooth scrolling listeners and disconnect the DOM observer
  */
 export const cleanupSmoothScrolling = () => {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -103,6 +104,11 @@ export const cleanupSmoothScrolling = () => {
       delete anchor._smoothScrollListener
     }
   })
-  
+
+  if (_scrollObserver) {
+    _scrollObserver.disconnect()
+    _scrollObserver = null
+  }
+
   logger.log('[SmoothScroll] Smooth scrolling listeners cleaned up')
-} 
+}

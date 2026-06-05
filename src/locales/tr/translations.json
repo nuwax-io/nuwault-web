@@ -29,14 +29,23 @@
         "title": "Karakter Türleri",
         "uppercase": "ABC (Büyük Harf)",
         "lowercase": "abc (Küçük Harf)",
-        "numbers": "123 (Sayılar)",
-        "symbols": "#$& (Semboller)"
+        "numbers": "123 (Sayılar)"
+      },
+      "symbolTypes": {
+        "title": "Sembol Türleri",
+        "logograms": "Logogram",
+        "braces": "Parantezler",
+        "dashes": "Tire ve Eğik Çizgi",
+        "punctuation": "Noktalama",
+        "quotes": "Tırnak İşaretleri",
+        "math": "Matematik",
+        "extended": "Genişletilmiş ASCII",
+        "excludeLookAlike": "Benzer görünen karakterleri hariç tut"
       },
       "generatedPassword": {
         "title": "Oluşturulan Şifre",
         "placeholder": {
           "default": "Şifre oluşturmak için anahtar kelime girin",
-          "empty": "Şifre oluşturmak için anahtar kelime ekleyin",
           "emptyKeywords": "Anahtar kelimeleriniz boş görünüyor",
           "shortKeywords": "Her anahtar kelime en az 3 karakter olmalıdır",
           "ready": "Şifreniz hazır",
@@ -108,7 +117,7 @@
         "description": "Aynı anahtar kelimeler her zaman aynı şifreyi üretir. Rastgele olmadığı için şifrelerinizi istediğiniz zaman yeniden oluşturabilirsiniz."
       },
       "sha512": {
-        "title": "SHA-512 Şifreleme",
+        "title": "SHA-512 Hash Algoritması",
         "description": "Askeri seviyede SHA-512 hash algoritması, şifrelerinizin kriptografik olarak güvenli olmasını sağlar."
       },
       "customizable": {
@@ -263,7 +272,7 @@
       },
       "security": {
         "title": "SHA-512 Güvenliği",
-        "description": "Şifreleriniz için askeri düzey şifreleme"
+        "description": "Şifreleriniz için askeri düzey kriptografik hash"
       }
     }
   },
@@ -415,7 +424,7 @@
             "Her hesap için benzersiz anahtar kelimeler kullanın",
             "Anahtar kelimelere hesap adını ekleyin",
             "Rotasyon için tarih/versiyon ekleyin",
-            "Akılda kalıcı anahtar keliem varyasyonuları oluşturun"
+            "Akılda kalıcı anahtar kelime varyasyonları oluşturun"
           ]
         },
         "right": {

@@ -17,13 +17,13 @@ const __dirname = path.dirname(__filename);
 
 const TEMPLATE_PATH = path.join(__dirname, '../src/templates/sw.template.js');
 const OUTPUT_PATH = path.join(__dirname, '../public/sw.js');
+const PKG_PATH = path.join(__dirname, '../package.json');
 
 /**
  * Default configuration values used when environment variables are not available
  */
 const DEFAULT_VALUES = {
   APP_NAME: 'nuwault',
-  APP_VERSION: '1.0.0',
   APP_DESCRIPTION: 'Privacy-focused deterministic password generator'
 };
 
@@ -110,8 +110,9 @@ async function generateServiceWorker() {
     let templateContent = fs.readFileSync(TEMPLATE_PATH, 'utf8');
     console.log('[SW Generator] 📁 Template loaded:', TEMPLATE_PATH);
     
+    const pkg = JSON.parse(fs.readFileSync(PKG_PATH, 'utf-8'));
     const appName = process.env.VITE_APP_NAME || DEFAULT_VALUES.APP_NAME;
-    const appVersion = process.env.VITE_APP_VERSION || DEFAULT_VALUES.APP_VERSION;
+    const appVersion = pkg.version;
     const appDescription = process.env.VITE_APP_DESCRIPTION || DEFAULT_VALUES.APP_DESCRIPTION;
     
     const cacheVersion = generateCacheVersion(appVersion);
